@@ -1,3 +1,12 @@
+/**
+ * Aperture Slider
+ *
+ * jQuery based generic sliding area. Can be used for multi-page forms or slide
+ * shows.
+ *
+ * @author    Rod McNew <rodmcnew@gmail.com>
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
+ */
 var ApertureSlider = function (apertureDiv, width, frameCount) {
 
     var filmDiv = apertureDiv.children('div');
