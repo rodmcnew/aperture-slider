@@ -1,19 +1,19 @@
 /**
  * Aperture Slider
  *
- * jQuery based generic sliding area. Can be used for multi-page forms or slide
- * shows.
+ * JavaScript object that can be used to create sliding multi-part forms and
+ * slide shows using jQuery.
  *
  * @author    Rod McNew <rodmcnew@gmail.com>
  * @license   http://framework.zend.com/license/new-bsd New BSD License
  */
 var ApertureSlider = function (apertureDiv, width, frameCount) {
 
-    var frameSeparation = 100;
-
     var filmDiv = apertureDiv.children('div');
 
     var frameDivs = filmDiv.children('div');
+
+    var frameSeparation = 100;
 
     var currentFrame = 0;
 
