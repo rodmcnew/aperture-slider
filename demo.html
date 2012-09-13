@@ -27,22 +27,21 @@
             //Init the slider
             var apertureSlider = new ApertureSlider(
                     $('.apertureSlider'),
+                    3,
                     700,
-                    3
+                    220
             );
 
-            //Attach back button click event
-            $('input[value="Back"]').click(function (event) {
-                event.preventDefault();
-                apertureSlider.goBack();
-            });
+            //Enables support for browser's back and refresh buttons
+            apertureSlider.enableBrowserButtonSupport('step');
 
             //Attach forward button click events
-            $('input[value="Next"]').click(function (event) {
+            $('input[value="Continue"]').click(function (event) {
                 event.preventDefault();
                 apertureSlider.goForward();
             });
 
+            //Attach tab events
             $('.tabs a').click(function (event) {
                 event.preventDefault();
                 apertureSlider.setCurrentFrame($(this).html()-1);
@@ -86,38 +85,41 @@
 
             <!-- Frame Div -->
             <div>
-                <h2>Section One</h2>
+                <h2>Section 1 - Enter your favorite cars</h2>
 
                 <form action="form_action.asp">
-                    Field 1:<br><input type="text"><br>
-                    Field 2:<br><input type="text"><br>
+                    Car 1:<br><input type="text"><br>
+                    Car 2:<br><input type="text"><br>
                 </form>
             </div>
 
             <!-- Frame Div -->
             <div>
-                <h2>Section Two</h2>
+                <h2>Section 2 - Enter your favorite animals</h2>
+
+                <p>
+                    Try using your browser's back and refresh buttons.
+                    They should work correctly.
+                </p>
 
                 <form action="form_action.asp">
-                    Field 3:<br><input type="text"><br>
-                    Field 4:<br><input type="text"><br>
+                    Animal 1:<br><input type="text"><br>
+                    Animal 2:<br><input type="text"><br>
                 </form>
             </div>
 
             <!-- Frame Div -->
             <div>
-                <h2>Section Three</h2>
+                <h2>Section 3 - Enter your favorite actors</h2>
 
                 <form action="form_action.asp">
-                    Field 5:<br><input type="text"><br>
-                    Field 6:<br><input type="text"><br>
+                    Actor 1:<br><input type="text"><br>
+                    Actor 2:<br><input type="text"><br>
                 </form>
             </div>
         </div>
     </div>
-
-    <input type="submit" value="Back">
-    <input type="submit" value="Next">
+    <input type="submit" value="Continue">
 
     <br><br>
     <a href="https://github.com/rodmcnew/aperture-slider">
