@@ -35,7 +35,7 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
     var frameDivs = filmDiv.children('div');
 
     //Init var
-    var currentFrame = 0;
+    var currentFrame = 1;
     var frameChangedCallBack;
     var browserButtonSupportEnabled=false;
     var browserButtonUrlName;
@@ -65,16 +65,16 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
     /**
      * Sets the current frame. This is the meat of this class.
      *
-     * @param {Integer} frameIndex the frame that we want to switch to
+     * @param {Integer} newFrame the frame that we want to switch to
      * @param {Function} callBack [optional] is called when sliding is complete
      * @param {Boolean} skipPushState [optional] used internally only
      */
-    me.setCurrentFrame = function (frameIndex, callBack, skipPushState) {
+    me.setCurrentFrame = function (newFrame, callBack, skipPushState) {
 
-        if (currentFrame == -1) {
+        if (currentFrame == 0) {
             //don't allow more sliding if we are already in the middle of a slide
             return false;
-        } else if(currentFrame==frameIndex) {
+        } else if(currentFrame==newFrame) {
             //If we are already here, there is no reason to move
             if(typeof(callBack)=='function'){
                 callBack(currentFrame);
@@ -85,30 +85,32 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
             var lastFrame = currentFrame;
 
             //mark that we are currently sliding
-            currentFrame = -1;
+            currentFrame = 0;
 
 
             //Show the next frame's contents
-            $(frameDivs.get(frameIndex)).children().show();
+            me.getFrameDiv(newFrame).children().show()
 
             //Mess with the url if browser button support is on
             if(browserButtonSupportEnabled){
                 if(!skipPushState){
-                    me.pushStateToHistory(frameIndex);
+                    me.pushStateToHistory(newFrame);
                 }
             }
 
             filmDiv.animate(
                 {
-                    'margin-left':-frameIndex * (width + frameSeparation)
+                    'margin-left':-(newFrame-1) * (width + frameSeparation)
                 },
                 animationDelay,
                 function () {
                     //hide the previous frame's contents
-                    $(frameDivs.get(lastFrame)).children().hide();
+                    me.getFrameDiv(lastFrame).children().hide();
 
                     //mark that we are done sliding
-                    currentFrame = frameIndex;
+                    currentFrame = newFrame;
+
+                    me.focusOnFirstInput();
 
                     //call the passed-in callback if it is set
                     if (typeof(callBack) == 'function') {
@@ -120,12 +122,25 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
                         frameChangedCallBack(currentFrame);
                     }
 
-
-
                 }
             )
         }
 
+    }
+
+    me.focusOnFirstInput = function(){
+        var inputs=me.getCurrentFrameDiv().find('input');
+        if(inputs.length){
+            inputs.first().focus();
+        }
+    }
+
+    me.getCurrentFrameDiv = function(){
+        return $(frameDivs.get(currentFrame));
+    }
+
+    me.getFrameDiv = function(frameNumber){
+        return $(frameDivs.get(frameNumber-1));
     }
 
     /**
@@ -153,7 +168,7 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
      * @param {Function} callBack [optional] is called when sliding is complete
      */
     me.goForward = function (callBack) {
-        if (currentFrame < frameCount - 1) {
+        if (currentFrame < frameCount) {
             me.setCurrentFrame(currentFrame + 1, callBack);
         }
     }
@@ -164,7 +179,7 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
      * @param {Function} callBack [optional] is called when sliding is complete
      */
     me.goBack = function (callBack) {
-        if (currentFrame != 0) {
+        if (currentFrame != 1) {
             me.setCurrentFrame(currentFrame - 1, callBack);
         }
     }
@@ -187,22 +202,29 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
     me.enableBrowserButtonSupport = function(urlName){
 
         if (typeof(urlName) == 'undefined') {
-            urlName = 'frame';
+            urlName = 'step';
         }
 
         browserButtonUrlName = urlName;
         browserButtonSupportEnabled = true;
 
-        $(window).bind('popstate', function(event) {
-                var urlParams=me.getUrlParams();
-                var frame = urlParams[browserButtonUrlName];
-                if(!me.isNumeric(frame)){
-                    frame=0;
-                }
-                me.setCurrentFrame(
-                    parseFloat(frame),null,true
-                );
-        })
+        me.handlePopState();
+
+        $(window).bind('popstate', me.handlePopState);
+    }
+
+    /**
+     *
+     */
+    me.handlePopState = function(){
+        var urlParams=me.getUrlParams();
+        var frame = urlParams[browserButtonUrlName];
+        if(!me.isNumeric(frame)){
+            frame=1;
+        }
+        me.setCurrentFrame(
+            parseFloat(frame),null,true
+        );
     }
 
     /**
