@@ -4,8 +4,12 @@
  * JavaScript object that can be used to create sliding multi-part forms and
  * slide shows using jQuery.
  *
- * @author    Rod McNew <rodmcnew@gmail.com>
- * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @category  ApertureSlider
+ * @package   ApertureSlider
+ * @author    Rod Mcnew <rmcnew@relivinc.com>
+ * @license   License.txt New BSD License
+ * @version   Release: 1.0
+ * @link      http://ci.reliv.com/confluence
  */
 
 /**
@@ -40,20 +44,6 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
     var browserButtonSupportEnabled=false;
     var browserButtonUrlName;
 
-    //Add css
-    frameDivs.css('float', 'left');
-    frameDivs.css('width', width + 'px');
-    frameDivs.css('min-height', minHeight + 'px');
-    frameDivs.css('margin-right', frameSeparation + 'px');
-    filmDiv.css('width', +(frameCount * (width + frameSeparation)) + 'px');
-    filmDiv.css('margin-left: 0');
-    apertureDiv.css('width', width + 'px');
-    apertureDiv.css('overflow', 'hidden');
-
-    //Hide off-screen frame contents
-    frameDivs.children().hide();
-    $(frameDivs.get(0)).children().show();
-
     /**
      * Always refers to me object unlike the 'me' JS variable;
      *
@@ -70,6 +60,8 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
      * @param {Boolean} skipPushState [optional] used internally only
      */
     me.setCurrentFrame = function (newFrame, callBack, skipPushState) {
+
+        newFrame=parseInt(newFrame);
 
         if (currentFrame == 0) {
             //don't allow more sliding if we are already in the middle of a slide
@@ -129,14 +121,14 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
     }
 
     me.focusOnFirstInput = function(){
-        var inputs=me.getCurrentFrameDiv().find('input');
-        if(inputs.length){
-            inputs.first().focus();
+        var input=me.getCurrentFrameDiv().find('input').first();
+        if(input){
+            input.focus();
         }
     }
 
     me.getCurrentFrameDiv = function(){
-        return $(frameDivs.get(currentFrame));
+        return me.getFrameDiv(currentFrame);
     }
 
     me.getFrameDiv = function(frameNumber){
@@ -280,4 +272,26 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
         }
         return params;
     }
+
+
+    me.init = function (){
+        //Add css
+        frameDivs.css('float', 'left');
+        frameDivs.css('width', width + 'px');
+        frameDivs.css('min-height', minHeight + 'px');
+        frameDivs.css('margin-right', frameSeparation + 'px');
+        filmDiv.css('width', +(frameCount * (width + frameSeparation)) + 'px');
+        filmDiv.css('margin-left: 0');
+        apertureDiv.css('width', width + 'px');
+        apertureDiv.css('overflow', 'hidden');
+
+        //Hide off-screen frame contents
+        frameDivs.children().hide();
+        me.getCurrentFrameDiv().children().show();
+
+        //Focus on first input if this is a form
+        me.focusOnFirstInput();
+    }
+
+    me.init();
 }
