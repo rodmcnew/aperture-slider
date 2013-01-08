@@ -1,8 +1,7 @@
 /**
  * Aperture Slider
  *
- * JavaScript object that can be used to create sliding multi-part forms and
- * slide shows using jQuery.
+ * JavaScript object that can be used to create sliding multi-part forms.
  *
  * @category  ApertureSlider
  * @package   ApertureSlider
@@ -15,13 +14,10 @@
 /**
  * Aperture Slider Constructor
  *
- * @param {jQuery Object} apertureDiv
+ * @param {Object} apertureDiv
  * @param {Integer} frameCount
  * @param {Integer} width
  * @param {Integer} minHeight [optional]
- * @param {jQuery Object} autoHidingBackButton [optional]
- * @param {Integer} animationDelay [optional]
- * @param {Integer} frameSeparation [optional]
  * @constructor
  */
 var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
@@ -41,8 +37,7 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
     //Init var
     var currentFrame = 1;
     var frameChangedCallBack;
-    var browserButtonSupportEnabled=false;
-    var browserButtonUrlName;
+    var bbqStateId='s';
 
     /**
      * Always refers to me object unlike the 'me' JS variable;
@@ -56,8 +51,8 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
      * Sets the current frame. This is the meat of this class.
      *
      * @param {Integer} newFrame the frame that we want to switch to
-     * @param {Function} callBack [optional] is called when sliding is complete
-     * @param {Boolean} skipPushState [optional] used internally only
+     * @param {Function} [callBack] is called when sliding is complete
+     * @param {Boolean} [skipPushState] used internally only
      */
     me.setCurrentFrame = function (newFrame, callBack, skipPushState) {
 
@@ -71,6 +66,7 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
             if(typeof(callBack)=='function'){
                 callBack(currentFrame);
             }
+            return true;
         } else {
             //Save the last frame that we were on so we can hide it after the
             //transition
@@ -81,14 +77,12 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
 
 
             //Show the next frame's contents
-            me.getFrameDiv(newFrame).children().show()
+            me.getFrameDiv(newFrame).children().show();
 
             //Mess with the url if browser button support is on
-            if(browserButtonSupportEnabled){
                 if(!skipPushState){
                     me.pushStateToHistory(newFrame);
                 }
-            }
 
             filmDiv.animate(
                 {
@@ -115,25 +109,27 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
                     }
 
                 }
-            )
+            );
+
+            return true;
         }
 
-    }
+    };
 
     me.focusOnFirstInput = function(){
         var input=me.getCurrentFrameDiv().find('input').first();
         if(input){
             input.focus();
         }
-    }
+    };
 
     me.getCurrentFrameDiv = function(){
         return me.getFrameDiv(currentFrame);
-    }
+    };
 
     me.getFrameDiv = function(frameNumber){
         return $(frameDivs.get(frameNumber-1));
-    }
+    };
 
     /**
      * Sets a callback function that will be call after each frame change
@@ -143,7 +139,7 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
      */
     me.setFrameChangedCallBack = function (callBack) {
         frameChangedCallBack = callBack;
-    }
+    };
 
     /**
      * Returns which frame we are currently on
@@ -152,29 +148,29 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
      */
     me.getCurrentFrame = function () {
         return currentFrame;
-    }
+    };
 
     /**
      * slide to next frame
      *
-     * @param {Function} callBack [optional] is called when sliding is complete
+     * @param {Function} [callBack] is called when sliding is complete
      */
     me.goForward = function (callBack) {
         if (currentFrame < frameCount) {
             me.setCurrentFrame(currentFrame + 1, callBack);
         }
-    }
+    };
 
     /**
      * Slide to last frame
      *
-     * @param {Function} callBack [optional] is called when sliding is complete
+     * @param {Function} [callBack] is called when sliding is complete
      */
     me.goBack = function (callBack) {
         if (currentFrame != 1) {
             me.setCurrentFrame(currentFrame - 1, callBack);
         }
-    }
+    };
 
     /**
      * Gets the number of frames
@@ -183,41 +179,17 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
      */
     me.getFrameCount = function () {
         return frameCount;
-    }
+    };
 
     /**
-     * Enables support for the browser's back and refresh buttons
-     *
-     * @param {String} urlName the url parameter name to use to store the
-     * current frame. Example: "step"
+     * Handle browser back, forward, and refreash buttons
      */
-    me.enableBrowserButtonSupport = function(urlName){
-
-        if (typeof(urlName) == 'undefined') {
-            urlName = 'step';
-        }
-
-        browserButtonUrlName = urlName;
-        browserButtonSupportEnabled = true;
-
-        me.handlePopState();
-
-        $(window).bind('popstate', me.handlePopState);
-    }
-
-    /**
-     *
-     */
-    me.handlePopState = function(){
-        var urlParams=me.getUrlParams();
-        var frame = urlParams[browserButtonUrlName];
-        if(!me.isNumeric(frame)){
-            frame=1;
-        }
+    me.handleHashChange = function(){
+        var frame = $.bbq.getState( bbqStateId, true ) || 1;
         me.setCurrentFrame(
             parseFloat(frame),null,true
         );
-    }
+    };
 
     /**
      * Pushes the current state (which frame we are on) to the html5 history
@@ -226,12 +198,10 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
      * @param frame
      */
     me.pushStateToHistory = function(frame){
-        history.pushState(
-            {apertureSlider:browserButtonUrlName},
-            null,
-            me.getUrlWithoutParams() + '?'+browserButtonUrlName+'=' + frame
-        );
-    }
+        var state={};
+        state[bbqStateId]=frame;
+        $.bbq.pushState(state);
+    };
 
     /**
      * Checks if a value is numeric
@@ -241,40 +211,12 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
      */
     me.isNumeric = function(value){
         return !isNaN(value)&&isFinite(value);
-    }
-
-    /**
-     * Gets the url without the '?' query string
-     *
-     * @return {String}
-     */
-    me.getUrlWithoutParams = function(){
-        return window.location.protocol + '//' + window.location.hostname
-            + window.location.pathname;
-    }
-
-    /**
-     * Gets all params from the url query string
-     *
-     * @return {Object}
-     */
-    me.getUrlParams = function(){
-        var params = {};
-
-        if (location.search) {
-            var parts = location.search.substring(1).split('&');
-
-            for (var i = 0; i < parts.length; i++) {
-                var nv = parts[i].split('=');
-                if (!nv[0]) continue;
-                params[nv[0]] = nv[1] || true;
-            }
-        }
-        return params;
-    }
-
+    };
 
     me.init = function (){
+        //Hide optional "Loading..." div
+        apertureDiv.parent().find('.apertureLoading').hide();
+
         //Add css
         frameDivs.css('float', 'left');
         frameDivs.css('width', width + 'px');
@@ -291,7 +233,13 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
 
         //Focus on first input if this is a form
         me.focusOnFirstInput();
-    }
+
+        //Support browser's refresh button
+        me.handleHashChange();
+
+        //Support browser's back button
+        $(window).bind( 'hashchange', me.handleHashChange);
+    };
 
     me.init();
-}
+};
