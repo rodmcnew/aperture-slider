@@ -21,6 +21,7 @@
     <script type="text/javascript"
             src="https://raw.github.com/cowboy/jquery-bbq/master/jquery.ba-bbq.min.js"></script>
     <script type="text/javascript" src="aperture-slider.js"></script>
+    <script type="text/javascript" src="progress-indicator.js"></script>
     <script type="text/javascript">
 
         //jQuery document.ready() shortcut
@@ -40,8 +41,18 @@
                 apertureSlider.goForward();
             });
 
+            //Setup optional progress indicator tab
+            var progressIndicator = new ProgressIndicator(
+                    $('.progressIndicator'),
+                    apertureSlider.getFrameCount()
+            );
+            progressIndicator.setProgress(1);
+            apertureSlider.setFrameChangedCallBack(function(frame){
+                progressIndicator.setProgress(frame);
+            });
+
             //Attach tab events
-            $('.tabs a').click(function (event) {
+            $('.progressIndicator span').click(function (event) {
                 event.preventDefault();
                 apertureSlider.setCurrentFrame($(this).html());
             });
@@ -50,11 +61,32 @@
     </script>
 
     <style>
+
+        a, a:visited{
+            color:blue;
+        }
+
         #main {
             width: 740px;
             margin: 50px auto;
             padding: 20px;
-            border: 1px solid
+            border: 1px solid black
+        }
+
+        .progressIndicator span {
+            padding:3px;
+            margin:3px;
+            border: 1px dotted grey;
+            color:blue;
+            cursor: pointer;
+        }
+
+        .progressIndicator .current{
+            border:3px solid black;
+        }
+
+        .progressIndicator .completed{
+            border: 1px solid black;
         }
     </style>
 
@@ -66,11 +98,9 @@
 
     <h2>Aperture Slider Demo</h2>
 
-    <div class="tabs">
+    <div>
         <span>Sections: </span>
-        <a href="#1">1</a>
-        <a href="#2">2</a>
-        <a href="#3">3</a>
+        <span class="progressIndicator"></span>
     </div>
 
     <!-- Aperture Div - it is hidden to prevent weirdness while loading.
