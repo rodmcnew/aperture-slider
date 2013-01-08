@@ -14,10 +14,10 @@
 /**
  * Aperture Slider Constructor
  *
- * @param {Object} apertureDiv
- * @param {Integer} frameCount
- * @param {Integer} width
- * @param {Integer} minHeight [optional]
+ * @param {Object} apertureDiv jQuery object for the aperture div
+ * @param {Integer} frameCount number of frames
+ * @param {Integer} width width
+ * @param {Integer} [minHeight] height
  * @constructor
  */
 var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
