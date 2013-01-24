@@ -15,29 +15,25 @@
  * Aperture Slider Constructor
  *
  * @param {Object} apertureDiv jQuery object for the aperture div
- * @param {Integer} frameCount number of frames
- * @param {Integer} width width
- * @param {Integer} [minHeight] height
+ * @param {Object} [configOverride] defaults are below
  * @constructor
  */
-var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
-    //Default Values
-    if (typeof(minHeight) == 'undefined') {
-        minHeight = 300;
-    }
+var ApertureSlider = function (apertureDiv, configOverride) {
 
-    var animationDelay = 400;
-    var frameSeparation = 100;
-
-
-    //Get all the divs we need to work with
-    var filmDiv = apertureDiv.children('div');
-    var frameDivs = filmDiv.children('div');
-
-    //Init var
-    var currentFrame = 1;
-    var frameChangedCallBack;
-    var bbqStateId='s';
+    /**
+     * Default config options
+     * @type {Object}
+     */
+    var config = {
+        frameWidth:800,
+        minHeight:400,
+        framesPerView:1, //Values > 1 not compatible with hideOffScreenFrames
+        animationDelay:400,
+        frameSeparation:100, //Must be 0 if framesPerView > 1
+        hideOffScreenFrames:true, //Prevents focus in off-screen forms.
+        backButtonSupport:false, //Requires jQuery bbq library
+        bbqStateId:'s'
+    };
 
     /**
      * Always refers to me object unlike the 'me' JS variable;
@@ -46,25 +42,94 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
      */
     var me = this;
 
+    var filmDiv, frameDivs, currentFrame, frameCount, totalFrameWidth,
+        filmWidth, apertureWidth, maxFrameIndex, minFrameIndex;
+
+    //Allow overriding of config vars
+    if (typeof(configOverride) == 'object') {
+        $.extend(config, configOverride);
+    }
+
+    /**
+     * Runs immediately after this class is instantiated
+     */
+    me.init = function () {
+
+
+        //Get all the divs we need to work with
+        filmDiv = apertureDiv.children();
+        frameDivs = filmDiv.children();
+
+        //Init
+        currentFrame = 1;
+        minFrameIndex = 1;
+
+        //Calculate widths and counts
+        frameCount = filmDiv.children().length;
+        totalFrameWidth = config.frameWidth + config.frameSeparation;
+        filmWidth = (frameCount * totalFrameWidth * 2); // * 2 for good measure
+        apertureWidth = config.framesPerView * config.frameWidth;
+        maxFrameIndex = frameCount - config.framesPerView + 1;
+
+        //Hide optional "Loading..." div
+        apertureDiv.parent().find('.apertureLoading').hide();
+
+        //Add css
+        frameDivs.css('float', 'left');
+        frameDivs.css('width', config.frameWidth + 'px');
+        frameDivs.css('min-height', config.minHeight + 'px');
+        frameDivs.css('margin-right', config.frameSeparation + 'px');
+        filmDiv.css('width', filmWidth + 'px');
+        filmDiv.css('margin-left: 0');
+        apertureDiv.css('width', apertureWidth + 'px');
+        apertureDiv.css('overflow', 'hidden');
+
+        //Hide off-screen frame contents
+        if (config.hideOffScreenFrames) {
+            frameDivs.children().hide();
+            me.getCurrentFrameDiv().children().show();
+        }
+
+        //Focus on first input if this is a form
+        me.focusOnFirstInput();
+
+
+        if (config.backButtonSupport) {
+            //Support browser's refresh button
+            me.handleHashChange();
+
+            //Support browser's back button
+            $(window).bind('hashchange', me.handleHashChange);
+        }
+    };
 
     /**
      * Sets the current frame. This is the meat of this class.
      *
      * @param {Integer} newFrame the frame that we want to switch to
-     * @param {Function} [callBack] is called when sliding is complete
+     * @param {Function} [callback] is called when sliding is complete
      * @param {Boolean} [skipPushState] used internally only
      */
-    me.setCurrentFrame = function (newFrame, callBack, skipPushState) {
+    me.goToFrame = function (newFrame, callback, skipPushState) {
 
-        newFrame=parseInt(newFrame);
+        if (newFrame < minFrameIndex) {
+            newFrame = minFrameIndex;
+        }
 
-        if (currentFrame == 0) {
-            //don't allow more sliding if we are already in the middle of a slide
+        if (newFrame > maxFrameIndex) {
+            newFrame = maxFrameIndex;
+        }
+
+        if (currentFrame == 0 || !newFrame) {
+            /**
+             * don't allow more sliding if we are already in the middle of a
+             * slide or if the new frame is invalid
+             */
             return false;
-        } else if(currentFrame==newFrame) {
+        } else if (currentFrame == newFrame) {
             //If we are already here, there is no reason to move
-            if(typeof(callBack)=='function'){
-                callBack(currentFrame);
+            if (typeof(callback) == 'function') {
+                callback(currentFrame);
             }
             return true;
         } else {
@@ -77,21 +142,25 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
 
 
             //Show the next frame's contents
-            me.getFrameDiv(newFrame).children().show();
+            if (config.hideOffScreenFrames) {
+                me.getFrameDiv(newFrame).children().show();
+            }
 
             //Mess with the url if browser button support is on
-                if(!skipPushState){
-                    me.pushStateToHistory(newFrame);
-                }
+            if (!skipPushState) {
+                me.pushStateToHistory(newFrame);
+            }
 
             filmDiv.animate(
                 {
-                    'margin-left':-(newFrame-1) * (width + frameSeparation)
+                    'margin-left':-(newFrame - 1) * totalFrameWidth
                 },
-                animationDelay,
+                config.animationDelay,
                 function () {
                     //hide the previous frame's contents
-                    me.getFrameDiv(lastFrame).children().hide();
+                    if (config.hideOffScreenFrames) {
+                        me.getFrameDiv(lastFrame).children().hide();
+                    }
 
                     //mark that we are done sliding
                     currentFrame = newFrame;
@@ -99,14 +168,11 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
                     me.focusOnFirstInput();
 
                     //call the passed-in callback if it is set
-                    if (typeof(callBack) == 'function') {
-                        callBack(currentFrame);
+                    if (typeof(callback) == 'function') {
+                        callback(currentFrame);
                     }
 
-                    //call universal frame-changed callBack if it is set
-                    if (typeof(frameChangedCallBack) != 'undefined') {
-                        frameChangedCallBack(currentFrame);
-                    }
+                    apertureDiv.trigger('apertureFrameChanged');
 
                 }
             );
@@ -116,29 +182,19 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
 
     };
 
-    me.focusOnFirstInput = function(){
-        var input=me.getCurrentFrameDiv().find('input').first();
-        if(input){
+    me.focusOnFirstInput = function () {
+        var input = me.getCurrentFrameDiv().find('input').first();
+        if (input) {
             input.focus();
         }
     };
 
-    me.getCurrentFrameDiv = function(){
+    me.getCurrentFrameDiv = function () {
         return me.getFrameDiv(currentFrame);
     };
 
-    me.getFrameDiv = function(frameNumber){
-        return $(frameDivs.get(frameNumber-1));
-    };
-
-    /**
-     * Sets a callback function that will be call after each frame change
-     * completes.
-     *
-     * @param {Function} callBack [optional] is called when sliding is complete
-     */
-    me.setFrameChangedCallBack = function (callBack) {
-        frameChangedCallBack = callBack;
+    me.getFrameDiv = function (frameNumber) {
+        return $(frameDivs.get(frameNumber - 1));
     };
 
     /**
@@ -151,25 +207,48 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
     };
 
     /**
+     *
+     * @param {Integer} frameDelta amount to change frame index by
+     * @param {Function} [callback] is called when sliding is complete
+     */
+    me.go = function (frameDelta, callback) {
+        me.goToFrame(currentFrame + frameDelta, callback);
+    };
+
+    /**
      * slide to next frame
      *
-     * @param {Function} [callBack] is called when sliding is complete
+     * @param {Function} [callback] is called when sliding is complete
      */
-    me.goForward = function (callBack) {
-        if (currentFrame < frameCount) {
-            me.setCurrentFrame(currentFrame + 1, callBack);
-        }
+    me.goForward = function (callback) {
+        me.go(1, callback);
     };
 
     /**
      * Slide to last frame
      *
-     * @param {Function} [callBack] is called when sliding is complete
+     * @param {Function} [callback] is called when sliding is complete
      */
-    me.goBack = function (callBack) {
-        if (currentFrame != 1) {
-            me.setCurrentFrame(currentFrame - 1, callBack);
-        }
+    me.goBack = function (callback) {
+        me.go(-1, callback);
+    };
+
+    /**
+     * Go forward a whole page
+     *
+     * @param {Function} [callback] is called when sliding is complete
+     */
+    me.pageForward = function (callback) {
+        me.go(config.framesPerView - 1, callback)
+    };
+
+    /**
+     * Go backward a whole page
+     *
+     * @param {Function} [callback] is called when sliding is complete
+     */
+    me.pageBack = function (callback) {
+        me.go(0 - config.framesPerView + 1, callback)
     };
 
     /**
@@ -184,11 +263,13 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
     /**
      * Handle browser back, forward, and refreash buttons
      */
-    me.handleHashChange = function(){
-        var frame = $.bbq.getState( bbqStateId, true ) || 1;
-        me.setCurrentFrame(
-            parseFloat(frame),null,true
-        );
+    me.handleHashChange = function () {
+        if (config.backButtonSupport) {
+            var frame = $.bbq.getState(config.bbqStateId, true) || 1;
+            me.goToFrame(
+                parseFloat(frame), null, true
+            );
+        }
     };
 
     /**
@@ -197,48 +278,12 @@ var ApertureSlider = function (apertureDiv, frameCount, width, minHeight) {
      *
      * @param frame
      */
-    me.pushStateToHistory = function(frame){
-        var state={};
-        state[bbqStateId]=frame;
-        $.bbq.pushState(state);
-    };
-
-    /**
-     * Checks if a value is numeric
-     *
-     * @param value
-     * @return {Boolean}
-     */
-    me.isNumeric = function(value){
-        return !isNaN(value)&&isFinite(value);
-    };
-
-    me.init = function (){
-        //Hide optional "Loading..." div
-        apertureDiv.parent().find('.apertureLoading').hide();
-
-        //Add css
-        frameDivs.css('float', 'left');
-        frameDivs.css('width', width + 'px');
-        frameDivs.css('min-height', minHeight + 'px');
-        frameDivs.css('margin-right', frameSeparation + 'px');
-        filmDiv.css('width', +(frameCount * (width + frameSeparation)) + 'px');
-        filmDiv.css('margin-left: 0');
-        apertureDiv.css('width', width + 'px');
-        apertureDiv.css('overflow', 'hidden');
-
-        //Hide off-screen frame contents
-        frameDivs.children().hide();
-        me.getCurrentFrameDiv().children().show();
-
-        //Focus on first input if this is a form
-        me.focusOnFirstInput();
-
-        //Support browser's refresh button
-        me.handleHashChange();
-
-        //Support browser's back button
-        $(window).bind( 'hashchange', me.handleHashChange);
+    me.pushStateToHistory = function (frame) {
+        if (config.backButtonSupport) {
+            var state = {};
+            state[config.bbqStateId] = frame;
+            $.bbq.pushState(state);
+        }
     };
 
     me.init();
