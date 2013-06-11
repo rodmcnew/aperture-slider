@@ -10,11 +10,15 @@ a, a:visited {
     color: blue;
 }
 
-#main {
+body {
     width: 740px;
     margin: 50px auto;
     padding: 20px;
     border: 1px solid black
+}
+
+label, input {
+    display: block;
 }
 
 .progressIndicator span {

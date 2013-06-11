@@ -16,9 +16,12 @@
 
     <meta charset="UTF-8">
 
-    <script type="text/javascript" src="vendor/jquery/1.8.0/jquery.min.js"></script>
-    <script type="text/javascript" src="vendor/jquery-bbq/jquery.ba-bbq.min.js"></script>
-    <script type="text/javascript" src="../aperture-progress-indicator.js"></script>
+    <script type="text/javascript"
+            src="vendor/jquery/1.8.0/jquery.min.js"></script>
+    <script type="text/javascript"
+            src="vendor/jquery-bbq/jquery.ba-bbq.min.js"></script>
+    <script type="text/javascript"
+            src="../aperture-progress-indicator.js"></script>
     <script type="text/javascript" src="../aperture-slider.js"></script>
     <script type="text/javascript" src="demo.js"></script>
 
@@ -28,57 +31,60 @@
 
 <body>
 
-<div id="main">
+<h2>Aperture Slider Demo</h2>
 
-    <h2>Aperture Slider Demo</h2>
+<div>
+    <span>Sections: </span>
+    <span class="progressIndicator"></span>
+</div>
 
+<!-- Aperture Div - it is hidden to prevent weirdness while loading.
+JS will call .show() on it -->
+<div class="apertureSlider" style="display:hidden;">
+
+    <!--Film Div -  is long and skinny and contains the frames. Only
+    part if this div shows up because the aperture div has a set width
+    and is overflow:hidden -->
     <div>
-        <span>Sections: </span>
-        <span class="progressIndicator"></span>
-    </div>
 
-    <!-- Aperture Div - it is hidden to prevent weirdness while loading.
-    JS will call .show() on it -->
-    <div class="apertureSlider" style="display:hidden;">
-
-        <!--Film Div -  is long and skinny and contains the frames. Only
-        part if this div shows up because the aperture div has a set width
-        and is overflow:hidden -->
+        <!-- Frame Div -->
         <div>
+            <h2>Section 1 - Enter your favorite cars</h2>
 
-            <!-- Frame Div -->
-            <div>
-                <h2>Section 1 - Enter your favorite cars</h2>
+            <form>
+                <label for="car1">Car 1:</label>
+                <input id="car1" type="text">
+                <label for="car2">Car 2:</label>
+                <input id="car2" type="text">
+            </form>
+        </div>
 
-                <form action="form_action.asp">
-                    Car 1:<br><input type="text"><br>
-                    Car 2:<br><input type="text"><br>
-                </form>
-            </div>
-
-            <!-- Frame Div -->
-            <div>
-                <h2>Section 2 - Enter your favorite animals</h2>
+        <!-- Frame Div -->
+        <div>
+            <h2>Section 2 - Enter your favorite animals</h2>
 
 
-                <form action="form_action.asp">
-                    Animal 1:<br><input type="text"><br>
-                    Animal 2:<br><input type="text"><br>
-                </form>
-            </div>
+            <form>
+                <label for="animal1">Animal 1:</label>
+                <input id="animal1" type="text">
+                <label for="animal2">Animal 2:</label>
+                <input id="animal2" type="text">
+            </form>
+        </div>
 
-            <!-- Frame Div -->
-            <div>
-                <h2>Section 3 - Enter your favorite actors</h2>
+        <!-- Frame Div -->
+        <div>
+            <h2>Section 3 - Enter your favorite actors</h2>
 
-                <form action="form_action.asp">
-                    Actor 1:<br><input type="text"><br>
-                    Actor 2:<br><input type="text"><br>
-                </form>
-            </div>
+            <form>
+                <label for="actor1">Actor 1:</label>
+                <input id="actor1" type="text">
+                <label for="actor2">Actor 2:</label>
+                <input id="actor2" type="text">
+            </form>
         </div>
     </div>
-    <input type="submit" value="Continue">
-
-</html>
+</div>
+<input type="submit" value="Continue">
 </body>
+</html>
