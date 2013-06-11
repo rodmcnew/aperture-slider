@@ -10,4 +10,4 @@ Aperture Slider depends on [jQuery](https://github.com/jquery/jquery) for DOM ma
 
 This is free software and is license under the New BSD License.
 
-For something more advanced than this, try [angular.js](https://github.com/angular/angular.js)
+For something more advanced than this try [angular.js](https://github.com/angular/angular.js).
