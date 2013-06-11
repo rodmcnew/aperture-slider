@@ -1,0 +1,34 @@
+/**
+ * Aperture Slider
+ *
+ * JavaScript object that can be used to create sliding multi-part forms.
+ *
+ * @author    Rod Mcnew
+ * @license   License.txt New BSD License
+ */
+a, a:visited {
+    color: blue;
+}
+
+#main {
+    width: 740px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid black
+}
+
+.progressIndicator span {
+    padding: 3px;
+    margin: 3px;
+    border: 1px dotted grey;
+    color: blue;
+    cursor: pointer;
+}
+
+.progressIndicator .current {
+    border: 3px solid black;
+}
+
+.progressIndicator .completed {
+    border: 1px solid black;
+}
