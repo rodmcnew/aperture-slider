@@ -1,3 +1,3 @@
 # Aperture Slider
 
-This is ancient - us angular.js instead.
+This is ancient - use angular.js instead.
