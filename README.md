@@ -1,1 +1,3 @@
-# This is ancient - use angular.js instead.
+# No Longer Maintained
+
+I suggest using angular routes instead of this.
